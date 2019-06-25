@@ -72,6 +72,14 @@ private:
   Coord minCoord;
   Coord maxCoord;
 
+  /**
+   * @brief Compute control points for the stroke
+   * The stroke line is defined by its start and ending points. We choose, as in the original paper,
+   * to compute intersections between the stroke line and the grid lines and make them "virtual actuators",
+   * so we can use phantom actuator illusion. Doing so allow to use all the actuators we have at their best.
+   * @param  s Previsonial **valid** stroke
+   * @return   Unique control points
+   */
   std::vector<Coord> computeVirtualPoints(const Stroke& s);
 
   bool isPointOnSegment(const Coord& point, const Coord& start, const Coord& end);

@@ -5,9 +5,7 @@ std::set<ActuatorStep> TactileBrush::computeStroke(const Stroke& s) {
     throw std::out_of_range("Stroke start or end point out of the grid range");
   }
   auto virtual_points = computeVirtualPoints(s);
-  for(const auto& p : virtual_points) {
-    std::cout << "(" << p.first << "," << p.second << ")" << std::endl;
-  }
+  for(const auto& p : virtual_points) printCoord(p);
   return std::set<ActuatorStep>();
 }
 
@@ -32,7 +30,7 @@ std::vector<Coord> TactileBrush::computeVirtualPoints(const Stroke& s) {
     }
   }
   else {
-    // Line parameters
+    // Stroke parameters
     float coef = (s.end.second - s.start.second) / (s.end.first - s.start.first);
     float orig = s.start.second - coef * s.start.first;
 
@@ -58,7 +56,13 @@ std::vector<Coord> TactileBrush::computeVirtualPoints(const Stroke& s) {
   // Add last point
   v.insert(s.end);
 
-  return std::vector<Coord>(v.begin(), v.end());
+  auto res = std::vector<Coord>(v.begin(), v.end());
+  // The direction of the movement matters a lot
+  if(s.start > s.end) {
+    std::reverse(res.begin(), res.end());
+  }
+
+  return res;
 }
 
 bool TactileBrush::isPointOnSegment(const Coord& point, const Coord& start, const Coord& end) {
