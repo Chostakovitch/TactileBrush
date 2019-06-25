@@ -17,16 +17,9 @@ const float EPSILON = 0.001f;
  * Coordinates are intented to be in centimeters (so they already take into account
  * distance between actuators)
  */
-typedef std::pair<float, float> Coord;
-
-/**
- * @struct Stroke
- * @brief Describes a straight-line stroke (start, end, duration)
- */
-struct Stroke {
-  Coord start;
-  Coord end;
-  float duration;
+struct ActuatorPoint: public std::pair<float, float> {
+  ActuatorPoint(float x, float y) : std::pair<float, float>(x, y) {}
+  float timerMaxIntensity;
 };
 
 /**
@@ -41,6 +34,19 @@ struct ActuatorStep {
   float duration;
 };
 
+/**
+ * @struct Stroke
+ * @brief Describes a straight-line stroke (start, end, duration)
+ */
+struct Stroke {
+  ActuatorPoint start;
+  ActuatorPoint end;
+  float duration;
+  std::vector<ActuatorPoint> virtualPoints;
+  std::vector<ActuatorStep> actuatorTriggers;
+};
+
+
 class TactileBrush {
 public:
   /**
@@ -49,10 +55,12 @@ public:
    * @param columns  Number of columns of the grid
    * @param distance Distance between two actuators
    */
-  TactileBrush(unsigned int lines, unsigned int columns, float distance) : lines(lines - 1), columns(columns - 1), interDist(distance) {
-    minCoord = Coord(0, 0);
-    maxCoord = Coord(columns * interDist, lines * interDist);
-  }
+  TactileBrush(unsigned int lines, unsigned int columns, float distance) :
+    lines(lines - 1),
+    columns(columns - 1),
+    interDist(distance),
+    minCoord(ActuatorPoint(0, 0)),
+    maxCoord(ActuatorPoint(columns * interDist, lines * interDist)) {}
 
   /**
    * @brief Compute the activation steps for a given stroke
@@ -63,28 +71,34 @@ public:
    * @param  s Desired stroke
    * @return   Vector of ActuatorStep to get the desired haptic stroke illustion
    */
-  std::set<ActuatorStep> computeStroke(const Stroke& s);
+  std::set<ActuatorStep> computeStroke(Stroke& s);
 private:
   unsigned int lines;
   unsigned int columns;
   float interDist;
 
-  Coord minCoord;
-  Coord maxCoord;
+  ActuatorPoint minCoord;
+  ActuatorPoint maxCoord;
 
   /**
-   * @brief Compute control points for the stroke
+   * @brief Computes control points for the stroke
    * The stroke line is defined by its start and ending points. We choose, as in the original paper,
    * to compute intersections between the stroke line and the grid lines and make them "virtual actuators",
    * so we can use phantom actuator illusion. Doing so allow to use all the actuators we have at their best.
    * @param  s Previsonial **valid** stroke
-   * @return   Unique control points
    */
-  std::vector<Coord> computeVirtualPoints(const Stroke& s);
+  void computeVirtualPoints(Stroke& s);
 
-  bool isPointOnSegment(const Coord& point, const Coord& start, const Coord& end);
-  bool isPointWithinGrid(const Coord& point);
-  inline void printCoord(const Coord& c) {
+  /**
+   * @brief Computes the time, in msec, when the virtual actuator must reach its maximum intensity
+   * @param  virtualPoints Vector of ordered virtual actuators describing the stroke path
+   * @param  s             Desired stroke
+   */
+   void computeMaxIntensityTimers(Stroke& s);
+
+  bool isPointOnSegment(const ActuatorPoint& point, const ActuatorPoint& start, const ActuatorPoint& end);
+  bool isPointWithinGrid(const ActuatorPoint& point);
+  inline void printCoord(const ActuatorPoint& c) {
     std::cout << "(" << c.first << "," << c.second << ")" << std::endl;
   }
 };
