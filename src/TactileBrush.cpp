@@ -5,16 +5,17 @@ std::set<ActuatorStep> TactileBrush::computeStroke(Stroke& s) {
     throw std::out_of_range("Stroke start or end point out of the grid range");
   }
   computeVirtualPoints(s);
+  computeMaxIntensityTimers(s);
   for(const auto& p : s.virtualPoints) printCoord(p);
-  computeMaxIntensityTimers();
   return std::set<ActuatorStep>();
 }
 
 void TactileBrush::computeVirtualPoints(Stroke& s) {
   // Ensure the comparison will ignore floating point errors
   auto cmp = [](ActuatorPoint a, ActuatorPoint b) {
-    if(b.first - a.first > EPSILON) return true;
-    return b.second - a.second > EPSILON;
+    float diffX = b.first - a.first;
+    if(diffX > EPSILON) return true;
+    return std::abs(diffX) < EPSILON && b.second - a.second > EPSILON;
   };
   std::set<ActuatorPoint, decltype(cmp)> v(cmp);
 
@@ -62,7 +63,13 @@ void TactileBrush::computeVirtualPoints(Stroke& s) {
 
 void TactileBrush::computeMaxIntensityTimers(Stroke& s) {
   float speed = std::hypot(s.start.first - s.end.first, s.start.second - s.end.second) / s.duration;
+  ActuatorPoint begin = s.virtualPoints[0];
 
+  // Divide distance from origin by speed, and get the **minimum** time when the actuator must reach its maximum intensity
+  for(int i = 1; i < s.virtualPoints.size(); ++i) {
+    auto& e = s.virtualPoints[i];
+    e.timerMaxIntensity = std::hypot(e.first - begin.first, e.second - begin.second) / speed;
+  }
 }
 
 bool TactileBrush::isPointOnSegment(const ActuatorPoint& point, const ActuatorPoint& start, const ActuatorPoint& end) {
