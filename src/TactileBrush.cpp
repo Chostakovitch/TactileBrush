@@ -6,6 +6,7 @@ std::set<ActuatorStep> TactileBrush::computeStroke(Stroke& s) {
   }
   computeVirtualPoints(s);
   computeMaxIntensityTimers(s);
+  computeDurationsAndSOAs(s);
   for(const auto& p : s.virtualPoints) printCoord(p);
   return std::set<ActuatorStep>();
 }
@@ -67,9 +68,28 @@ void TactileBrush::computeMaxIntensityTimers(Stroke& s) {
 
   // Divide distance from origin by speed, and get the **minimum** time when the actuator must reach its maximum intensity
   for(int i = 1; i < s.virtualPoints.size(); ++i) {
-    auto& e = s.virtualPoints[i];
+    ActuatorPoint& e = s.virtualPoints[i];
     e.timerMaxIntensity = std::hypot(e.first - begin.first, e.second - begin.second) / speed;
   }
+}
+
+// Computations are extrapolated from the paper, more details to come in README probably
+void TactileBrush::computeDurationsAndSOAs(Stroke& s) {
+  float sumSOA = 0;
+  // First actuator is not triggered before first timerMaxIntensity, and last not after last timerMaxIntensity
+  s.virtualPoints[0].durations.first = 0;
+  s.virtualPoints[s.virtualPoints.size() - 1].durations.second = 0;
+  s.virtualPoints[s.virtualPoints.size() - 1].soa = 0;
+
+  for(auto it = s.virtualPoints.begin(); it != std::prev(s.virtualPoints.end()); ++it) {
+    ActuatorPoint& e = *(it);
+    e.soa = (0.32f * (e.durations.first + sumSOA + (*(it + 1)).timerMaxIntensity) + 47.3f) / 1.32f;
+    sumSOA += e.soa;
+    e.durations.second = (*(it + 1)).timerMaxIntensity - sumSOA;
+  }
+
+  // Duration of the last actuator is based on total previsional time minus all SOAs
+  s.virtualPoints[s.virtualPoints.size() - 1].durations.first = s.duration - sumSOA;
 }
 
 bool TactileBrush::isPointOnSegment(const ActuatorPoint& point, const ActuatorPoint& start, const ActuatorPoint& end) {

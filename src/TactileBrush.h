@@ -20,6 +20,9 @@ const float EPSILON = 0.001f;
 struct ActuatorPoint: public std::pair<float, float> {
   ActuatorPoint(float x, float y) : std::pair<float, float>(x, y), timerMaxIntensity(0) {}
   float timerMaxIntensity;
+  // First member is duration before timerMaxIntensity, second is duration after timerMaxIntensity
+  std::pair<float, float> durations;
+  float soa;
 };
 
 /**
@@ -43,7 +46,7 @@ struct ActuatorStep {
 struct Stroke {
   ActuatorPoint start;
   ActuatorPoint end;
-  float duration;
+  float duration; ///< In msec
   std::vector<ActuatorPoint> virtualPoints;
   std::vector<ActuatorStep> actuatorTriggers;
 };
@@ -92,16 +95,21 @@ private:
   void computeVirtualPoints(Stroke& s);
 
   /**
-   * @brief Computes the time, in sec, when the virtual actuator must reach its maximum intensity
-   * @param  virtualPoints Vector of ordered virtual actuators describing the stroke path
-   * @param  s             Desired stroke
+   * @brief Computes the time, in msec, when the virtual actuator must reach its maximum intensity
+   * @param s Desired stroke
    */
-   void computeMaxIntensityTimers(Stroke& s);
+  void computeMaxIntensityTimers(Stroke& s);
+
+  /**
+  * @brief Computes the duration of each virtual actuator, and the SOA, i.e. interval between two actuator triggers
+  * @param s Desired stroke
+  */
+  void computeDurationsAndSOAs(Stroke& s);
 
   bool isPointOnSegment(const ActuatorPoint& point, const ActuatorPoint& start, const ActuatorPoint& end);
   bool isPointWithinGrid(const ActuatorPoint& point);
   inline void printCoord(const ActuatorPoint& c) {
-    std::cout << "(" << c.first << "," << c.second << ") in " << c.timerMaxIntensity << "s" << std::endl;
+    std::cout << "(" << c.first << "," << c.second << ") in " << c.timerMaxIntensity << "ms. Must last " << c.durations.first + c.durations.second << "ms and wait " << c.soa << "ms before passing" << std::endl;
   }
 };
 
