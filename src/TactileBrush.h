@@ -8,6 +8,7 @@
 #include <stdexcept>
 #include <algorithm>
 #include <iostream>
+#include <sstream>
 
 const float EPSILON = 0.001f;
 
@@ -29,6 +30,8 @@ struct ActuatorPoint: public std::pair<float, float> {
  * @brief Describes the activation of an **physical** actuator used to build the stroke
  */
 struct ActuatorStep {
+  ActuatorStep(unsigned int line, unsigned int column, float intensity, float soa, float duration) :
+    line(line), column(column), intensity(intensity), soa(soa), duration(duration) {}
   unsigned int line;
   unsigned int column;
   float intensity;
@@ -75,7 +78,7 @@ public:
    * @param  s Desired stroke
    * @return   Vector of ActuatorStep to get the desired haptic stroke illustion
    */
-  std::set<ActuatorStep> computeStroke(Stroke& s);
+  void computeStroke(Stroke& s);
 private:
   unsigned int lines;
   unsigned int columns;
@@ -104,6 +107,12 @@ private:
   * @param s Desired stroke
   */
   void computeDurationsAndSOAs(Stroke& s);
+
+  /**
+   * @brief From SOAs and duration for virtual actuators, compute SOAs and duration for physical actuators
+   * @param s Desired stroke
+   */
+  void computePhysicalMapping(Stroke& s);
 
   bool isPointOnSegment(const ActuatorPoint& point, const ActuatorPoint& start, const ActuatorPoint& end);
   bool isPointWithinGrid(const ActuatorPoint& point);
