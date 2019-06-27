@@ -20,9 +20,8 @@ const float EPSILON = 0.001f;
 struct ActuatorPoint: public std::pair<float, float> {
   ActuatorPoint(float x, float y) : std::pair<float, float>(x, y), timerMaxIntensity(0) {}
   float timerMaxIntensity;
-  // First member is duration before timerMaxIntensity, second is duration after timerMaxIntensity
-  std::pair<float, float> durations;
-  float soa;
+  std::pair<float, float> durations; ///< First member is duration before timerMaxIntensity, second is duration after timerMaxIntensity
+  float soa; ///< In msec **from the start of the stroke**
 };
 
 /**

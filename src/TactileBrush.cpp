@@ -83,9 +83,10 @@ void TactileBrush::computeDurationsAndSOAs(Stroke& s) {
 
   for(auto it = s.virtualPoints.begin(); it != std::prev(s.virtualPoints.end()); ++it) {
     ActuatorPoint& e = *(it);
-    e.soa = (0.32f * (e.durations.first + sumSOA + (*(it + 1)).timerMaxIntensity) + 47.3f) / 1.32f;
-    sumSOA += e.soa;
+    sumSOA += (0.32f * (e.durations.first - sumSOA + (*(it + 1)).timerMaxIntensity) + 47.3f) / 1.32f;
+    e.soa = sumSOA;
     e.durations.second = (*(it + 1)).timerMaxIntensity - sumSOA;
+    (*(it + 1)).durations.first = e.durations.second;
   }
 
   // Duration of the last actuator is based on total previsional time minus all SOAs
