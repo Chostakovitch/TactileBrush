@@ -98,9 +98,10 @@ void TactileBrush::computePhysicalMapping(Stroke& s) {
     float actDuration = e.durations.first + e.durations.second;
     // If virtual actuator is in fact physical, let full intensity
     if(std::fmod(e.first, interDist) < EPSILON && std::fmod(e.second, interDist) < EPSILON) {
-      ActuatorStep step(std::round(e.first / interDist), std::round(e.second / interDist), s.intensity, e.soa, actDuration);
-      s.actuatorTriggers.push_back(step);
+      ActuatorStep step(std::round(e.first / interDist), std::round(e.second / interDist), s.intensity, actDuration);
+      insertActuatorStep(s, e.soa, step);
     }
+
     // Otherwise, use phantom actuator energy model and compute intensities for
     // the two closest actuators (easy because virtual actuators are on the grid!)
     else {
@@ -128,12 +129,17 @@ void TactileBrush::computePhysicalMapping(Stroke& s) {
       float ratio = std::hypot(c1 - e.first, l1 - e.second) / std::hypot(c1 - c2, l1 - l2);
 
       // Adjust physical actuators' intensity according to the ratio
-      ActuatorStep phy1(l1, c1, std::sqrt(1 - ratio) * s.intensity, e.soa, actDuration);
-      ActuatorStep phy2(l2, c2, std::sqrt(ratio) * s.intensity, e.soa, actDuration);
-      s.actuatorTriggers.push_back(phy1);
-      s.actuatorTriggers.push_back(phy2);
+      ActuatorStep phy1(l1, c1, std::sqrt(1 - ratio) * s.intensity, actDuration);
+      ActuatorStep phy2(l2, c2, std::sqrt(ratio) * s.intensity, actDuration);
+      insertActuatorStep(s, e.soa, phy1);
+      insertActuatorStep(s, e.soa, phy2);
     }
   }
+}
+
+void TactileBrush::insertActuatorStep(Stroke& s, float time, ActuatorStep step) {
+  auto const result = s.actuatorTriggers.insert(std::make_pair(time, std::vector<ActuatorStep>({ step })));
+  if (!result.second) { result.first->second.push_back(step); }
 }
 
 bool TactileBrush::isPointOnSegment(const ActuatorPoint& point, const ActuatorPoint& start, const ActuatorPoint& end) {

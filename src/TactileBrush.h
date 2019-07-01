@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <iostream>
 #include <sstream>
+#include <map>
 
 const float EPSILON = 0.001f;
 
@@ -30,12 +31,11 @@ struct ActuatorPoint: public std::pair<float, float> {
  * @brief Describes the activation of an **physical** actuator used to build the stroke
  */
 struct ActuatorStep {
-  ActuatorStep(unsigned int line, unsigned int column, float intensity, float soa, float duration) :
-    line(line), column(column), intensity(intensity), soa(soa), duration(duration) {}
+  ActuatorStep(unsigned int line, unsigned int column, float intensity, float duration) :
+    line(line), column(column), intensity(intensity), duration(duration) {}
   unsigned int line;
   unsigned int column;
   float intensity;
-  float soa;
   float duration;
 };
 
@@ -51,7 +51,7 @@ struct Stroke {
   float duration; ///< In msec
   float intensity; ///< Global intensity between 0 and 1
   std::vector<ActuatorPoint> virtualPoints;
-  std::vector<ActuatorStep> actuatorTriggers;
+  std::map<float, std::vector<ActuatorStep>> actuatorTriggers;
 };
 
 
@@ -115,11 +115,21 @@ private:
    */
   void computePhysicalMapping(Stroke& s);
 
+  /**
+   * Small helper to update the <time, actuator> trigger map
+   * @param s    Stroke to update
+   * @param time Time to trigger actuator, according to the beginning of the stroke
+   * @param step Parameters of the physical actuator activation
+   */
+  void insertActuatorStep(Stroke& s, float time, ActuatorStep step);
+
   bool isPointOnSegment(const ActuatorPoint& point, const ActuatorPoint& start, const ActuatorPoint& end);
   bool isPointWithinGrid(const ActuatorPoint& point);
   inline void printCoord(const ActuatorPoint& c) {
     std::cout << "(" << c.first << "," << c.second << ") in " << c.timerMaxIntensity << "ms. Must last " << c.durations.first + c.durations.second << "ms and wait " << c.soa << "ms before passing" << std::endl;
   }
+
+
 };
 
 #endif
