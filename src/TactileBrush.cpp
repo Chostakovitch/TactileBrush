@@ -2,22 +2,21 @@
 #include "Stroke.h"
 
 void TactileBrush::computeStroke(Stroke& s) {
-  if(!(isPointWithinGrid(s.start) && isPointWithinGrid(s.end))) {
+  if(!(isPointWithinGrid(s.getStart()) && isPointWithinGrid(s.getEnd()))) {
     throw std::out_of_range("Stroke start or end point out of the grid range");
   }
   s.computeVirtualPoints(lines, columns, interDist);
   s.computeMaxIntensityTimers();
   s.computeDurationsAndSOAs();
-  computePhysicalMapping(s.getVirtualPoints(), s.intensity);
+  computePhysicalMapping(s.getVirtualPoints(), s.getIntensity());
 }
 
 void TactileBrush::computePhysicalMapping(const std::vector<ActuatorPoint>& virtualPoints, float globalIntensity) {
   for(const auto& e : virtualPoints) {
-    float actDuration = e.durations.first + e.durations.second;
     // If virtual actuator is in fact physical, let full intensity
     if(std::fmod(e.first, interDist) < EPSILON && std::fmod(e.second, interDist) < EPSILON) {
-      ActuatorStep step(std::round(e.first / interDist), std::round(e.second / interDist), globalIntensity, actDuration);
-      insertActuatorStep(e.soa, step);
+      ActuatorStep step(std::round(e.first / interDist), std::round(e.second / interDist), globalIntensity, e.getDuration());
+      insertActuatorStep(e.getSOA(), step);
     }
 
     // Otherwise, use phantom actuator energy model and compute intensities for
@@ -47,10 +46,10 @@ void TactileBrush::computePhysicalMapping(const std::vector<ActuatorPoint>& virt
       float ratio = std::hypot(c1 - e.first, l1 - e.second) / std::hypot(c1 - c2, l1 - l2);
 
       // Adjust physical actuators' intensity according to the ratio
-      ActuatorStep phy1(l1, c1, std::sqrt(1 - ratio) * globalIntensity, actDuration);
-      ActuatorStep phy2(l2, c2, std::sqrt(ratio) * globalIntensity, actDuration);
-      insertActuatorStep(e.soa, phy1);
-      insertActuatorStep(e.soa, phy2);
+      ActuatorStep phy1(l1, c1, std::sqrt(1 - ratio) * globalIntensity, e.getDuration());
+      ActuatorStep phy2(l2, c2, std::sqrt(ratio) * globalIntensity, e.getDuration());
+      insertActuatorStep(e.getSOA(), phy1);
+      insertActuatorStep(e.getSOA(), phy2);
     }
   }
 }
@@ -61,7 +60,6 @@ bool TactileBrush::isPointWithinGrid(const ActuatorPoint& point) {
   if(point.second < minCoord.second || point.second > maxCoord.second) return false;
   return true;
 }
-
 
 void TactileBrush::prettyPrint() {
   for(const auto& p : actuatorTriggers) {
