@@ -49,6 +49,7 @@ struct Stroke {
   ActuatorPoint start;
   ActuatorPoint end;
   float duration; ///< In msec
+  float intensity; ///< Global intensity between 0 and 1
   std::vector<ActuatorPoint> virtualPoints;
   std::vector<ActuatorStep> actuatorTriggers;
 };

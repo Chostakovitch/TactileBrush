@@ -97,7 +97,7 @@ void TactileBrush::computePhysicalMapping(Stroke& s) {
   for(const auto& e : s.virtualPoints) {
     // If virtual actuator is in fact physical, let full intensity
     if(std::fmod(e.first, interDist) < EPSILON && std::fmod(e.second, interDist) < EPSILON) {
-      ActuatorStep step(std::round(e.first / interDist), std::round(e.second / interDist), 1, e.soa, e.durations.first + e.durations.second);
+      ActuatorStep step(std::round(e.first / interDist), std::round(e.second / interDist), s.intensity, e.soa, e.durations.first + e.durations.second);
       s.actuatorTriggers.push_back(step);
     }
     // Otherwise, use phantom actuator energy model and compute intensities for
@@ -105,13 +105,13 @@ void TactileBrush::computePhysicalMapping(Stroke& s) {
     else {
       unsigned int l1, c1, l2, c2;
       // Virtual actuator is on a column
-      if(std::fmod(e.first, interDist)) {
+      if(std::fmod(e.first, interDist) < EPSILON) {
         c1 = c2 = std::round(e.first / interDist) * interDist;
         l1 = std::floor(e.second);
         l2 = std::ceil(e.second);
       }
       // Virtual actuator is on a line
-      else if(std::fmod(e.second, interDist)) {
+      else if(std::fmod(e.second, interDist) < EPSILON) {
         l1 = l2 = std::round(e.second / interDist) * interDist;
         c1 = std::floor(e.first);
         c2 = std::ceil(e.first);
