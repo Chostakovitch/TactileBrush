@@ -95,9 +95,10 @@ void TactileBrush::computeDurationsAndSOAs(Stroke& s) {
 
 void TactileBrush::computePhysicalMapping(Stroke& s) {
   for(const auto& e : s.virtualPoints) {
+    float actDuration = e.durations.first + e.durations.second;
     // If virtual actuator is in fact physical, let full intensity
     if(std::fmod(e.first, interDist) < EPSILON && std::fmod(e.second, interDist) < EPSILON) {
-      ActuatorStep step(std::round(e.first / interDist), std::round(e.second / interDist), s.intensity, e.soa, e.durations.first + e.durations.second);
+      ActuatorStep step(std::round(e.first / interDist), std::round(e.second / interDist), s.intensity, e.soa, actDuration);
       s.actuatorTriggers.push_back(step);
     }
     // Otherwise, use phantom actuator energy model and compute intensities for
@@ -125,6 +126,12 @@ void TactileBrush::computePhysicalMapping(Stroke& s) {
       // Ratio of the distance (physical - virtual) over (physical - physical) :
       // tells us from which physical actuator the virtual actuator is closer
       float ratio = std::hypot(c1 - e.first, l1 - e.second) / std::hypot(c1 - c2, l1 - l2);
+
+      // Adjust physical actuators' intensity according to the ratio
+      ActuatorStep phy1(l1, c1, std::sqrt(1 - ratio) * s.intensity, e.soa, actDuration);
+      ActuatorStep phy2(l2, c2, std::sqrt(ratio) * s.intensity, e.soa, actDuration);
+      s.actuatorTriggers.push_back(phy1);
+      s.actuatorTriggers.push_back(phy2);
     }
   }
 }
