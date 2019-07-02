@@ -22,18 +22,18 @@ void TactileBrush::computePhysicalMapping(const std::vector<ActuatorPoint>& virt
     // Otherwise, use phantom actuator energy model and compute intensities for
     // the two closest actuators (easy because virtual actuators are on the grid!)
     else {
-      unsigned int l1, c1, l2, c2;
+      int l1, c1, l2, c2;
       // Virtual actuator is on a column
       if(std::fmod(e.first, interDist) < EPSILON) {
-        c1 = c2 = std::round(e.first / interDist) * interDist;
-        l1 = std::floor(e.second);
-        l2 = std::ceil(e.second);
+        c1 = c2 = std::round(e.first / interDist);
+        l1 = std::floor(e.second / interDist);
+        l2 = std::ceil(e.second / interDist);
       }
       // Virtual actuator is on a line
       else if(std::fmod(e.second, interDist) < EPSILON) {
-        l1 = l2 = std::round(e.second / interDist) * interDist;
-        c1 = std::floor(e.first);
-        c2 = std::ceil(e.first);
+        l1 = l2 = std::round(e.second / interDist);
+        c1 = std::floor(e.first / interDist);
+        c2 = std::ceil(e.first / interDist);
       }
       // Anormal case : virtual actuator is not on the grid
       else {
@@ -43,11 +43,11 @@ void TactileBrush::computePhysicalMapping(const std::vector<ActuatorPoint>& virt
       }
       // Ratio of the distance (physical - virtual) over (physical - physical) :
       // tells us from which physical actuator the virtual actuator is closer
-      float ratio = std::hypot(c1 - e.first, l1 - e.second) / std::hypot(c1 - c2, l1 - l2);
+      float ratio = std::hypot(c1 - e.first / interDist, l1 - e.second / interDist) / std::hypot(c1 - c2, l1 - l2);
 
       // Adjust physical actuators' intensity according to the ratio
-      ActuatorStep phy1(l1, c1, std::sqrt(1 - ratio) * globalIntensity, e.getDuration());
-      ActuatorStep phy2(l2, c2, std::sqrt(ratio) * globalIntensity, e.getDuration());
+      ActuatorStep phy1(c1, l1, std::sqrt(1 - ratio) * globalIntensity, e.getDuration());
+      ActuatorStep phy2(c2, l2, std::sqrt(ratio) * globalIntensity, e.getDuration());
       insertActuatorStep(e.getSOA(), phy1);
       insertActuatorStep(e.getSOA(), phy2);
     }

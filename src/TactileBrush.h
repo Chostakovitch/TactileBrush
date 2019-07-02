@@ -12,12 +12,12 @@
  * @brief Describes the activation of an **physical** actuator used to build the stroke
  */
 struct ActuatorStep {
-  ActuatorStep(unsigned int line, unsigned int column, float intensity, float duration) :
+  ActuatorStep(unsigned int column, unsigned int line, float intensity, float duration) :
     line(line), column(column), intensity(intensity), duration(duration) {}
-  unsigned int line;
-  unsigned int column;
-  float intensity;
-  float duration;
+  unsigned int line; ///< Line number of the physical actuator, NOT CENTIMERS
+  unsigned int column; ///< Column number of the physical actuator, NOT CENTIMERS
+  float intensity; ///< On the scale [0, 1]
+  float duration; ///< In miliseconds
 };
 
 inline std::ostream& operator<<(std::ostream &os, const ActuatorStep& m) {
