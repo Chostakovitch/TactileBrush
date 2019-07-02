@@ -67,20 +67,19 @@ void Stroke::computeDurationsAndSOAs() {
   float sumSOA = 0;
   // First actuator is not triggered before first timerMaxIntensity, and last not after last timerMaxIntensity
   virtualPoints[0].durations.first = 0;
+  virtualPoints[0].start = 0;
   virtualPoints[virtualPoints.size() - 1].durations.second = 0;
-  virtualPoints[virtualPoints.size() - 1].soa = 0;
 
   for(auto it = virtualPoints.begin(); it != std::prev(virtualPoints.end()); ++it) {
     ActuatorPoint& e = *(it);
     sumSOA += (0.32f * (e.durations.first - sumSOA + (*(it + 1)).timerMaxIntensity) + 47.3f) / 1.32f;
-    e.soa = sumSOA;
+    (*(it + 1)).start = sumSOA;
     e.durations.second = (*(it + 1)).timerMaxIntensity - sumSOA;
     (*(it + 1)).durations.first = e.durations.second;
   }
 
   // Duration of the last actuator is based on total previsional time minus all SOAs
   virtualPoints[virtualPoints.size() - 1].durations.first = duration - sumSOA;
-  virtualPoints[virtualPoints.size() - 1].soa = std::numeric_limits<float>::infinity();
 
 }
 
