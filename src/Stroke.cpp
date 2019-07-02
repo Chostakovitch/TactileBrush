@@ -13,14 +13,15 @@ void Stroke::computeVirtualPoints(float lines, float columns, float interDist) {
   v.insert(start);
 
   // Vertical segment : no slope
-  if(start.first == end.first) {
+  if(std::abs(end.first - start.first) < EPSILON) {
     for(int l = 0; l < lines; ++l) {
       ActuatorPoint c(start.first, l * interDist);
       if(isPointOnSegment(c, start, end)) v.insert(c);
     }
   }
+
   else {
-    // Stroke parameters
+    // Stroke slope parameters
     float coef = (end.second - start.second) / (end.first - start.first);
     float orig = start.second - coef * start.first;
 
@@ -42,13 +43,11 @@ void Stroke::computeVirtualPoints(float lines, float columns, float interDist) {
   // Add last point
   v.insert(end);
 
-  auto res = std::vector<ActuatorPoint>(v.begin(), v.end());
+  virtualPoints = std::vector<ActuatorPoint>(v.begin(), v.end());
   // The direction of the movement matters a lot
   if(start > end) {
-    std::reverse(res.begin(), res.end());
+    std::reverse(virtualPoints.begin(), virtualPoints.end());
   }
-
-  virtualPoints = res;
 }
 
 void Stroke::computeMaxIntensityTimers() {
@@ -65,22 +64,22 @@ void Stroke::computeMaxIntensityTimers() {
 // Computations are extrapolated from the paper, more details to come in README probably
 void Stroke::computeDurationsAndSOAs() {
   float sumSOA = 0;
-  // First actuator is not triggered before first timerMaxIntensity, and last not after last timerMaxIntensity
-  virtualPoints[0].durations.first = 0;
   virtualPoints[0].start = 0;
-  virtualPoints[virtualPoints.size() - 1].durations.second = 0;
 
-  for(auto it = virtualPoints.begin(); it != std::prev(virtualPoints.end()); ++it) {
-    ActuatorPoint& e = *(it);
-    sumSOA += (0.32f * (e.durations.first - sumSOA + (*(it + 1)).timerMaxIntensity) + 47.3f) / 1.32f;
-    (*(it + 1)).start = sumSOA;
-    e.durations.second = (*(it + 1)).timerMaxIntensity - sumSOA;
-    (*(it + 1)).durations.first = e.durations.second;
+  // First actuator is not triggered before first timerMaxIntensity
+  virtualPoints[0].durations.first = 0;
+
+  for(unsigned int i = 0; i < virtualPoints.size() - 1; ++i) {
+    auto& current = virtualPoints[i];
+    auto& next = virtualPoints[i + 1];
+    sumSOA += (0.32f * (current.durations.first - sumSOA + next.timerMaxIntensity) + 47.3f) / 1.32f;
+    next.start = sumSOA;
+    next.durations.first = current.durations.second = next.timerMaxIntensity - sumSOA;
   }
 
   // Duration of the last actuator is based on total previsional time minus all SOAs
   virtualPoints[virtualPoints.size() - 1].durations.first = duration - sumSOA;
-
+  virtualPoints[virtualPoints.size() - 1].durations.second = 0;
 }
 
 bool Stroke::isPointOnSegment(const ActuatorPoint& point, const ActuatorPoint& start, const ActuatorPoint& end) {
