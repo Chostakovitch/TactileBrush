@@ -21,7 +21,11 @@ struct ActuatorStep {
 };
 
 inline std::ostream& operator<<(std::ostream &os, const ActuatorStep& m) {
-    return os << "test";
+    std::ostringstream oss;
+    oss << "Actuator at position (" << m.column << "," << m.line << ")";
+    oss << " triggered during " << m.duration << "msec";
+    oss << " with intensity " << m.intensity;
+    return std::cout << oss.str() << std::endl;
 }
 
 class TactileBrush {

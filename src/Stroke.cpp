@@ -80,6 +80,8 @@ void Stroke::computeDurationsAndSOAs() {
 
   // Duration of the last actuator is based on total previsional time minus all SOAs
   virtualPoints[virtualPoints.size() - 1].durations.first = duration - sumSOA;
+  virtualPoints[virtualPoints.size() - 1].soa = std::numeric_limits<float>::infinity();
+
 }
 
 bool Stroke::isPointOnSegment(const ActuatorPoint& point, const ActuatorPoint& start, const ActuatorPoint& end) {

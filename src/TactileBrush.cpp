@@ -65,7 +65,7 @@ void TactileBrush::prettyPrint() {
   for(const auto& p : actuatorTriggers) {
     std::cout << "Time " << p.first << "ms :" << std::endl;
     for(const auto& s : p.second) {
-      std::cout << "\t" << s << std::endl;
+      std::cout << "\t" << s;
     }
   }
 }
