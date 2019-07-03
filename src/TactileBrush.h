@@ -54,6 +54,8 @@ public:
   void computeStroke(Stroke& s);
 
   void prettyPrint();
+
+  const std::map<float, std::vector<ActuatorStep>>& getMotion() const { return actuatorTriggers; }
 private:
   unsigned int lines;
   unsigned int columns;
