@@ -28,6 +28,13 @@ struct ActuatorPoint: public std::pair<float, float> {
   float start; ///< In msec **from the start of the stroke**
 };
 
+inline std::ostream& operator<<(std::ostream &os, const ActuatorPoint& m) {
+    std::ostringstream oss;
+    oss << "Virtual actuator at position (" << m.first << "," << m.second << ")";
+    oss << " triggered at " << m.getStart() << " ms during " << m.getDuration() << "msec";
+    return std::cout << oss.str() << std::endl;
+}
+
 /**
  * @class Stroke
  * @brief Describes a straight-line stroke (start, end, duration)
@@ -66,6 +73,7 @@ public:
   inline const ActuatorPoint& getStart() const { return start; }
   inline const ActuatorPoint& getEnd() const { return end; }
 
+  void prettyPrint();
 private:
   std::vector<ActuatorPoint> virtualPoints;
   bool isPointOnSegment(const ActuatorPoint& point, const ActuatorPoint& start, const ActuatorPoint& end);

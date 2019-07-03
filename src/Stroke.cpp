@@ -89,3 +89,9 @@ bool Stroke::isPointOnSegment(const ActuatorPoint& point, const ActuatorPoint& s
   // Avoid rounding errors ; if the point lies on the segment, the equality will be true, otherwise it's a triangle
   return startToPointDist + pointToEndDist - segDist < EPSILON;
 }
+
+void Stroke::prettyPrint() {
+  for(const auto& p : virtualPoints) {
+      std::cout << p;
+  }
+}

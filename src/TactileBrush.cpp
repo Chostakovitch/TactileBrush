@@ -8,6 +8,7 @@ void TactileBrush::computeStroke(Stroke& s) {
   s.computeVirtualPoints(lines, columns, interDist);
   s.computeMaxIntensityTimers();
   s.computeDurationsAndSOAs();
+  s.prettyPrint();
   computePhysicalMapping(s.getVirtualPoints(), s.getIntensity());
 }
 
