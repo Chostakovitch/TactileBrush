@@ -5,6 +5,8 @@
 - [Introduction](#introduction)
 - [Compilation and installation](#compilation-and-installation)
 - [Usage](#usage)
+- [Algorithm example](#algorithm-example)
+- [Equations](#equations)
 
 <!-- /TOC -->
 
@@ -87,6 +89,94 @@ for(const auto& [key, val] : motion) {
   // val.intensity defines the actuator intensity between 0 and 1 included
   // val.duration tells us the activation duration in milliseconds
 }
+
+// Just to sum up the activation parameters and check everything is ok
+t.prettyPrint();
 ```
 
-Then you are free to use this data as you want to trigger your actuators, but you should have all that you need.
+Then you are free to use this data as you want in order to trigger your actuators, but you should have all that you need.
+
+## Algorithm example
+
+You can read the paper to get a better idea of how works the algorithm. Here, I just take a simple example showing the main steps of the algorithm. Let's take a 3x4 grid and a (1, 3) → (4.5, 1) motion which needs to last 1000 milliseconds at full intensity (1). To avoid confusion between grid dimensions and stroke coordinates, see the picture below :
+
+![Grid and Stroke schema](img/grid_stroke.svg)
+
+In blue you have the physical actuators, and in orange you can see the *virtual* actuators, or control points, which are the intersection of the grid with the stroke.
+
+Then, thanks to the tactile brush algorithm, we compute two things :
+* When those virtual actuators need to be triggered (**start**)
+* For how many time (**duration**)
+
+The results are (with `Stroke::prettyPrint()`) :
+
+```
+Virtual actuator at position (1,3) triggered at 0 ms during 72.3918msec
+Virtual actuator at position (1.5,2.71429) triggered at 70.4654 ms during 398.527msec
+Virtual actuator at position (3,1.85714) triggered at 245.294 ms during 593.592msec
+Virtual actuator at position (3.625,1.5) triggered at 482.543 ms during 558.798msec
+Virtual actuator at position (4.5,1) triggered at 708.659 ms during 291.341msec
+```
+
+After plotting the above, we have the following :
+
+![Plot of virtual actuators activation](img/plot_virtual.svg)
+
+At this point, we act like our virtual actuators are physical, and we have the trigger time and duration. The last step is to map virtual actuators on physical actuators. This is really simple with the formula given in the paper : we just take the two closest physical actuators, we keep the same start and duration, we just balance the intensity with the energy model given by the authors.
+
+The results are (with `TactileBrush::prettyPrint()`) :
+
+```
+Time 0ms :
+        Physical actuator at column 0 and 2 triggered during 72.3918msec with intensity 0.57735
+        Physical actuator at column 1 and 2 triggered during 72.3918msec with intensity 0.816497
+Time 70.4654ms :
+        Physical actuator at column 1 and 1 triggered during 398.527msec with intensity 0.436436
+        Physical actuator at column 1 and 2 triggered during 398.527msec with intensity 0.899735
+Time 245.294ms :
+        Physical actuator at column 2 and 1 triggered during 593.592msec with intensity 0.872872
+        Physical actuator at column 2 and 2 triggered during 593.592msec with intensity 0.48795
+Time 482.543ms :
+        Physical actuator at column 2 and 1 triggered during 558.798msec with intensity 0.763763
+        Physical actuator at column 3 and 1 triggered during 558.798msec with intensity 0.645497
+Time 708.659ms :
+        Physical actuator at column 3 and 0 triggered during 291.341msec with intensity 0.57735
+        Physical actuator at column 3 and 1 triggered during 291.341msec with intensity 0.816497
+```
+
+We see that each virtual actuator maps on two physical actuators (because in this case, no virtual actuator lies on a physical actuator), and that the start and duration time are the same, but the intensities are different.
+
+## Equations
+
+Just a quick section to acknowledge that I had to generalize the equations used to compute durations and SOAs. In the paper, the equation system is given for a limited example, along with :
+
+> This set of equations gives us four linear equations and solution for four unknowns: two durations and two SOAs. It is trivial to extend this solution for a larger number of λi.
+
+As I may have done a mistake doing that, verifications are welcomed.
+
+In the paper, these relations are given :
+
+* <img src="https://latex.codecogs.com/svg.latex?SOA_0&space;&plus;&space;SOA_1&space;&plus;&space;d''&space;=&space;T">
+* <img src="https://latex.codecogs.com/svg.latex?SOA_0&space;&plus;&space;d'&space;=&space;\dfrac{a}{v}">
+* <img src="https://latex.codecogs.com/svg.latex?SOA_0&space;=&space;0.32*d'&plus;47.3">
+* <img src="https://latex.codecogs.com/svg.latex?SOA_1=0.32*(d'&plus;d'')&plus;47.3">
+
+See below the corresponding symbols :
+
+![Schema of the original paper](img/paper_schema.png)
+
+Please note that `v` is the motion's speed and that `𝜏₁ = a/v`, that is, the time when the actuator must be at its maximum intensity so that we end the motion	within the allotted time. And so on, `𝜏₂ = (a + b)/v`...
+
+In the following equations, instead of using `d'`, `d''` and so on, we use a subscript number to indicate the actuator number and a superscript `-` or `+` to indicate if the duration is before or after `𝜏i`.
+
+We came up with the following relations, `n` being the number of virtual actuators :
+
+* <img src="https://latex.codecogs.com/svg.latex?d_i=d^&plus;_i&space;&plus;&space;d_i^-">
+* <img src="https://latex.codecogs.com/svg.latex?d_0^-=0,d_n^&plus;=0">
+* <img src="https://latex.codecogs.com/svg.latex?d_i^&plus;=d_{i&plus;1}^-">
+* <img src="https://latex.codecogs.com/svg.latex?d_i^&plus;=\tau_{i&plus;1}-\sum_{k=0}^{i}SOA_k">
+* <img src="https://latex.codecogs.com/svg.latex?SOA_i=0,32*d_i&plus;47.3">
+
+Combining this, we have all what we need to compute SOA and duration for every virtual actuator. First, compute SOA, and then use relation 1, 3 and 4 to compute duration. Use relation 2 for first and last actuator.
+
+ <img src="https://latex.codecogs.com/svg.latex?SOA_i=\dfrac{0,32*(d_i^-&plus;\tau_{i&plus;1}-\sum_{k=0}^{i-1}SOA_k)&plus;47.3}{1.32}">
