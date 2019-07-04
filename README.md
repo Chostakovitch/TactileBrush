@@ -18,7 +18,7 @@ This repo proposes an implementation of the Tactile Brush algorithm proposed by 
 
 This algorithm gives a general method to create haptic illusions of a 2D motion from a 2D grid of *actuators* (which may be ERMs, LRAs, haptic excitors...). It is based on two known haptic illusions :
 
-* Phantom actuator, or funneling illusion : when you feel an actuator at one place while none is there. Instead, two close actuators are triggered at the same time with a variable intensity, and the brain interpret these signals as a single actuator located in between.
+* Phantom actuator, or funneling illusion : when you feel an actuator at one place while none is there. Instead, two close actuators are triggered at the same time with a variable intensity, and the brain interprets these signals as a single actuator located in between.
 * Apparent motion, when the consecutive activation of two actuators feels like a continuous motion. This illusion is subject to the right choice of duration, frequency, and [SOA](https://en.wikipedia.org/wiki/Stimulus_onset_asynchrony).
 
 The algorithm has a few constraints :
@@ -77,7 +77,12 @@ Stroke s(
 t.computeStroke(s);
 ```
 
-Note that `ActuatorPoint` is constructed from "real world" coordinates, not "grid units", *i.e.* use centimeters and (x, y) format. This may seem strange as we are mixing grid dimension (4x3) and coordinates in centimeters, but at least in my case, using centimeters to describe motion is more straightforward.
+
+Note that `ActuatorPoint` is constructed from "real world" coordinates, not "grid units". This may seem strange as we are mixing grid dimension (4x3) and coordinates in centimeters, but at least in my case, using centimeters to describe motion is more straightforward. Let me give an example :
+
+* Take a 2 x 2 grid with a spacing of 3cm.
+* When we talk about **physical** actuator, we use grid unit, *e.g* (1, 2) will be the actuator located at the first column, second line.
+* When we talk about **virtual** actuator, or `ActuatorPoint`, the actuator above will be referred as (1 * 3, 2 * 3) = (3, 6).
 
 Once the computation is over, you can exploit the results with something like this :
 
@@ -106,7 +111,7 @@ In blue you have the physical actuators, and in orange you can see the *virtual*
 
 Then, thanks to the tactile brush algorithm, we compute two things :
 * When those virtual actuators need to be triggered (**start**)
-* For how many time (**duration**)
+* For how long (**duration**)
 
 The results are (with `Stroke::prettyPrint()`) :
 
