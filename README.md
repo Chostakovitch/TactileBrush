@@ -90,9 +90,11 @@ Once the computation is over, you can exploit the results with something like th
 const auto& motion = t.getMotion();
 for(const auto& [key, val] : motion) {
   // key contains time of activation in milliseconds
-  // val.line and val.column contains the position of the actuator to trigger
-  // val.intensity defines the actuator intensity between 0 and 1 included
-  // val.duration tells us the activation duration in milliseconds
+  for(const auto& actuator in val) {
+    // actuator.line and actuator.column contains the position of the actuator to trigger
+    // actuator.intensity defines the actuator intensity between 0 and 1 included
+    // actuator.duration tells us the activation duration in milliseconds
+  }
 }
 
 // Just to sum up the activation parameters and check everything is ok
