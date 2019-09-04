@@ -20,6 +20,7 @@ const float EPSILON = 0.001f;
  * distance between actuators)
  */
 struct ActuatorPoint: public std::pair<float, float> {
+  ActuatorPoint() {}
   ActuatorPoint(float x, float y) : std::pair<float, float>(x, y), timerMaxIntensity(0) {}
   inline float getDuration() const { return durations.first + durations.second; }
   inline float getStart() const { return start; }
@@ -38,21 +39,36 @@ inline std::ostream& operator<<(std::ostream &os, const ActuatorPoint& m) {
 /**
  * @class Stroke
  * @brief Describes a straight-line stroke (start, end, duration)
- * Also, contains a field describing the "control points" of the stroke, i.e.
- * points belonging to the line
+ * and has methods to compute virtual points and parameters of movement
  */
 class Stroke {
 public:
-  Stroke(ActuatorPoint start, ActuatorPoint end, float duration, float intensity) :
-    start(start), end(end), duration(duration), intensity(intensity) {}
+  Stroke(int startX, int startY, int endX, int endY, float interDist, float duration, float intensity) :
+    startX(startX), startY(startY), endX(endX), endY(endY),
+    duration(duration), intensity(intensity), interDist(interDist) {}
+
+  /**
+   * Compute all virtual actuators' positions,
+   * as well as their time and duration of activation.
+   * @param lines     Number of lines in the grid
+   * @param columns   Number of columns in the grid
+   * @param interDist Distance (cm) between two points of the grid
+   * @returns Vector of ActuatorPoints corresponding to virtual actuators and their parameters
+   */
+  const std::vector<ActuatorPoint>& computeParameters(float lines, float columns, float interDist);
+  inline float getDuration() const { return duration; }
+  inline float getIntensity() const { return intensity; }
+
+  inline const ActuatorPoint& getStart() const { return start; }
+  inline const ActuatorPoint& getEnd() const { return end; }
+
+  void prettyPrint();
+private:
   /**
    * @brief Computes control points for the stroke
    * The stroke line is defined by its start and ending points. We choose, as in the original paper,
    * to compute intersections between the stroke line and the grid lines and make them "virtual actuators",
    * so we can use phantom actuator illusion. Doing so allow to use all the actuators we have at their best.
-   * @param lines     Number of lines in the grid
-   * @param columns   Number of columns in the grid
-   * @param interDist Distance (cm) between two points of the grid
    */
   void computeVirtualPoints(float lines, float columns, float interDist);
 
@@ -65,22 +81,13 @@ public:
   * @brief Computes the duration of each virtual actuator, and the SOA, i.e. interval between two actuator triggers
   */
   void computeDurationsAndSOAs();
+  bool isPointOnStroke(const ActuatorPoint& point);
 
-  inline float getDuration() const { return duration; }
-  inline float getIntensity() const { return intensity; }
-
-  inline const std::vector<ActuatorPoint>& getVirtualPoints() const { return virtualPoints; }
-  inline const ActuatorPoint& getStart() const { return start; }
-  inline const ActuatorPoint& getEnd() const { return end; }
-
-  void prettyPrint();
-private:
   std::vector<ActuatorPoint> virtualPoints;
-  bool isPointOnSegment(const ActuatorPoint& point, const ActuatorPoint& start, const ActuatorPoint& end);
-
-  ActuatorPoint start;
-  ActuatorPoint end;
+  ActuatorPoint start, end;
+  float startX, endX, startY, endY;
   float duration; ///< In msec
   float intensity; ///< Global intensity between 0 and 1
+  float interDist; ///< Distance between actuators in centimeters
 };
 #endif

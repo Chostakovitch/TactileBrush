@@ -50,12 +50,11 @@ public:
    * and with which intensity (useful for phantome actuators). These steps
    * are computed with the Tactile Brush algorithm.
    * @param  s Desired stroke
+   * @returns Map whose key is time and value is actuators activation parameters
    */
-  void computeStroke(Stroke& s);
+  const std::map<float, std::vector<ActuatorStep>>& computeStrokeSteps(Stroke& s);
 
   void prettyPrint();
-
-  const std::map<float, std::vector<ActuatorStep>>& getMotion() const { return actuatorTriggers; }
 private:
   unsigned int lines;
   unsigned int columns;

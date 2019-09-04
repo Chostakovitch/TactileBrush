@@ -1,6 +1,17 @@
 #include "Stroke.h"
 
+const std::vector<ActuatorPoint>& Stroke::computeParameters(float lines, float columns, float interDist) {
+  computeVirtualPoints(lines, columns, interDist);
+  computeMaxIntensityTimers();
+  computeDurationsAndSOAs();
+  return virtualPoints;
+}
+
 void Stroke::computeVirtualPoints(float lines, float columns, float interDist) {
+  // We need interDist to compute speed!
+  start = ActuatorPoint(startX * interDist, startY * interDist);
+  end = ActuatorPoint(endX * interDist, endY * interDist);
+
   // Ensure the comparison will ignore floating point errors
   auto cmp = [](ActuatorPoint a, ActuatorPoint b) {
     float diffX = b.first - a.first;
@@ -16,7 +27,7 @@ void Stroke::computeVirtualPoints(float lines, float columns, float interDist) {
   if(std::abs(end.first - start.first) < EPSILON) {
     for(int l = 0; l < lines; ++l) {
       ActuatorPoint c(start.first, l * interDist);
-      if(isPointOnSegment(c, start, end)) v.insert(c);
+      if(isPointOnStroke(c)) v.insert(c);
     }
   }
 
@@ -30,13 +41,13 @@ void Stroke::computeVirtualPoints(float lines, float columns, float interDist) {
       float y = l * interDist;
       // If the fiber of the "line" is within the grid, add a virtual point
       ActuatorPoint ant((y - orig) / coef, y);
-      if(isPointOnSegment(ant, start, end)) v.insert(ant);
+      if(isPointOnStroke(ant)) v.insert(ant);
     }
     for(int c = 0; c < columns; ++c) {
       float x = c * interDist;
       // If the image of the "column" is within the grid, add a virtual point
       ActuatorPoint res(x, coef * x + orig);
-      if(isPointOnSegment(res, start, end)) v.insert(res);
+      if(isPointOnStroke(res)) v.insert(res);
     }
   }
 
@@ -82,7 +93,7 @@ void Stroke::computeDurationsAndSOAs() {
   virtualPoints[virtualPoints.size() - 1].durations.second = 0;
 }
 
-bool Stroke::isPointOnSegment(const ActuatorPoint& point, const ActuatorPoint& start, const ActuatorPoint& end) {
+bool Stroke::isPointOnStroke(const ActuatorPoint& point) {
   float segDist = std::hypot(start.first - end.first, start.second - end.second);
   float startToPointDist = std::hypot(start.first - point.first, start.second - point.second);
   float pointToEndDist = std::hypot(end.first - point.first, end.second - point.second);

@@ -1,15 +1,14 @@
 #include "TactileBrush.h"
 #include "Stroke.h"
 
-void TactileBrush::computeStroke(Stroke& s) {
+const std::map<float, std::vector<ActuatorStep>>& TactileBrush::computeStrokeSteps(Stroke& s) {
   if(!(isPointWithinGrid(s.getStart()) && isPointWithinGrid(s.getEnd()))) {
     throw std::out_of_range("Stroke start or end point out of the grid range");
   }
-  s.computeVirtualPoints(lines, columns, interDist);
-  s.computeMaxIntensityTimers();
-  s.computeDurationsAndSOAs();
+  const auto& virtualPoints = s.computeParameters(lines, columns, interDist);
   s.prettyPrint();
-  computePhysicalMapping(s.getVirtualPoints(), s.getIntensity());
+  computePhysicalMapping(virtualPoints, s.getIntensity());
+  return actuatorTriggers;
 }
 
 void TactileBrush::computePhysicalMapping(const std::vector<ActuatorPoint>& virtualPoints, float globalIntensity) {

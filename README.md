@@ -55,7 +55,12 @@ Don't forget to compile your program with `-ltactilebrush` flag.
 
 ## Usage
 
-There is two concepts in TactileBrush : **grid** and **stroke**. You always start by creating a 2D-grid representing your **physical** actuators, *e.g.* :
+There is two concepts in TactileBrush : **grid** and **stroke**.
+
+### Grid
+
+A grid is unique to a specific system. You will probably create a single grid in your application and use it for all computations. It is bound to a **physical** prototype.
+You always start by creating a 2D-grid representing your **physical** actuators, *e.g.* :
 
 ```c++
 // Creates a 3*4 grid of actuators, spaced vertically and horizontally by 2.5cm.
@@ -65,29 +70,30 @@ TactileBrush t(
   2.5); // Spacing of the actuators in centimeters
 ```
 
-Then, you want to know when, for how long and how strong to trigger actuators so that the user feels a given motion. To do that, create a stroke (representing the motion) and compute the motion parameters, *e.g.* :
+One may wonder why spacing is mandatory as all actuators are equally spaced, see [Equations](#equations) section for this ; real distance between actuators is used to compute the time when an actuator must reach its maximum intensity, which is used in SOA computation for example.
+
+### Stroke
+
+A stroke is an abstract movement which has a start point, an end point, a duration and an intensity. A stroke is completely independent of a grid and has no physical meaning.
+
+You can create it like that :
 
 ```c++
 Stroke s(
-  ActuatorPoint(1, 5), // Start of the stroke
-  ActuatorPoint(5, 2), // End of the stroke
+  1, 2, // Start of the stroke (x, y)
+  3, 3, // End of the stroke (x, y)
   1000, // Total duration in milliseconds
   1); // Total intensity (between 0 and 1)
-// Compute actuators' activation parameters
-t.computeStroke(s);
 ```
 
+### Mixing grid and stroke
 
-Note that `ActuatorPoint` is constructed from "real world" coordinates, not "grid units". This may seem strange as we are mixing grid dimension (4x3) and coordinates in centimeters, but at least in my case, using centimeters to describe motion is more straightforward. Let me give an example :
+You cannot compute anything with a stroke alone, because an unique stroke will produce different parameters for two different grids.
 
-* Take a 2 x 2 grid with a spacing of 3cm.
-* When we talk about **physical** actuator, we use grid unit, *e.g* (1, 2) will be the actuator located at the first column, second line.
-* When we talk about **virtual** actuator, or `ActuatorPoint`, the actuator above will be referred as (1 * 3, 2 * 3) = (3, 6).
-
-Once the computation is over, you can exploit the results with something like this :
+So, now you want to know when, for how long and how strong to trigger physical actuators so that the user feels a given motion. To do that, we need to compute activation steps of physical actuators given a stroke. Once the computation is over, you can exploit the results with something like this :
 
 ```c++
-const auto& motion = t.getMotion();
+const auto& motion = t.computeStrokeSteps(s);
 for(const auto& [key, val] : motion) {
   // key contains time of activation in milliseconds
   for(const auto& actuator in val) {
@@ -101,7 +107,7 @@ for(const auto& [key, val] : motion) {
 t.prettyPrint();
 ```
 
-Then you are free to use this data as you want in order to trigger your actuators, but you should have all that you need.
+Then you should have all that you need and you are free to use this data as you want in order to trigger your actuators.
 
 ## Algorithm example
 
