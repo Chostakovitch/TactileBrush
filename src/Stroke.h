@@ -43,9 +43,9 @@ inline std::ostream& operator<<(std::ostream &os, const ActuatorPoint& m) {
  */
 class Stroke {
 public:
-  Stroke(int startX, int startY, int endX, int endY, float interDist, float duration, float intensity) :
+  Stroke(int startX, int startY, int endX, int endY, float duration, float intensity) :
     startX(startX), startY(startY), endX(endX), endY(endY),
-    duration(duration), intensity(intensity), interDist(interDist) {}
+    duration(duration), intensity(intensity) {}
 
   /**
    * Compute all virtual actuators' positions,
@@ -88,6 +88,5 @@ private:
   float startX, endX, startY, endY;
   float duration; ///< In msec
   float intensity; ///< Global intensity between 0 and 1
-  float interDist; ///< Distance between actuators in centimeters
 };
 #endif
