@@ -7,6 +7,7 @@ const std::map<float, std::vector<ActuatorStep>>& TactileBrush::computeStrokeSte
   }
   const auto& virtualPoints = s.computeParameters(lines, columns, interDist);
   s.prettyPrint();
+  actuatorTriggers.clear();
   computePhysicalMapping(virtualPoints, s.getIntensity());
   return actuatorTriggers;
 }
