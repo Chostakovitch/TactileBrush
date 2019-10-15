@@ -15,7 +15,7 @@ void TactileBrush::computePhysicalMapping(const std::vector<ActuatorPoint>& virt
   for(const auto& e : virtualPoints) {
     // If virtual actuator is in fact physical, let full intensity
     if(std::fmod(e.first, interDist) < EPSILON && std::fmod(e.second, interDist) < EPSILON) {
-      ActuatorStep step(std::round(e.first / interDist), std::round(e.second / interDist), globalIntensity, e.getDuration());
+      ActuatorStep step(std::round(e.first / interDist), std::round(e.second / interDist), globalIntensity, e.getDuration(), e.timerMaxIntensity);
       insertActuatorStep(e.getStart(), step);
     }
 
@@ -46,8 +46,8 @@ void TactileBrush::computePhysicalMapping(const std::vector<ActuatorPoint>& virt
       float ratio = std::hypot(c1 - e.first / interDist, l1 - e.second / interDist) / std::hypot(c1 - c2, l1 - l2);
 
       // Adjust physical actuators' intensity according to the ratio
-      ActuatorStep phy1(c1, l1, std::sqrt(1 - ratio) * globalIntensity, e.getDuration());
-      ActuatorStep phy2(c2, l2, std::sqrt(ratio) * globalIntensity, e.getDuration());
+      ActuatorStep phy1(c1, l1, std::sqrt(1 - ratio) * globalIntensity, e.getDuration(), e.timerMaxIntensity);
+      ActuatorStep phy2(c2, l2, std::sqrt(ratio) * globalIntensity, e.getDuration(), e.timerMaxIntensity);
       insertActuatorStep(e.getStart(), phy1);
       insertActuatorStep(e.getStart(), phy2);
     }

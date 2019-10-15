@@ -32,7 +32,8 @@ struct ActuatorPoint: public std::pair<float, float> {
 inline std::ostream& operator<<(std::ostream &os, const ActuatorPoint& m) {
     std::ostringstream oss;
     oss << "Virtual actuator at position (" << m.first << "," << m.second << ")";
-    oss << " triggered at " << m.getStart() << " ms during " << m.getDuration() << "msec";
+    oss << " triggered at " << m.getStart() << " ms during " << m.getDuration() << "msec.";
+    oss << " Max intensity reached at " << m.timerMaxIntensity << "msec.";
     return std::cout << oss.str() << std::endl;
 }
 

@@ -100,6 +100,8 @@ for(const auto& [key, val] : motion) {
     // actuator.line and actuator.column contains the position of the actuator to trigger
     // actuator.intensity defines the actuator intensity between 0 and 1 included
     // actuator.duration tells us the activation duration in milliseconds
+    // actuator.maxIntensity is when the actuator needs to be perceived at its max intensity.
+    // ^^^^^^ you could use this to modulate amplitude to smoothen transitions!
   }
 }
 
