@@ -44,7 +44,7 @@ inline std::ostream& operator<<(std::ostream &os, const ActuatorPoint& m) {
  */
 class Stroke {
 public:
-  Stroke(int startX, int startY, int endX, int endY, float duration, float intensity) :
+  Stroke(float startX, float startY, float endX, float endY, float duration, float intensity) :
     startX(startX), startY(startY), endX(endX), endY(endY),
     duration(duration), intensity(intensity) {}
 

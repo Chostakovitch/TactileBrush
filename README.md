@@ -76,7 +76,7 @@ One may wonder why spacing is mandatory as all actuators are equally spaced, see
 
 A stroke is an abstract movement which has a start point, an end point, a duration and an intensity. A stroke is completely independent of a grid and has no physical meaning.
 
-You can create it like that :
+You can create it like that. Note that `x` and `y` are units, not centimeters.
 
 ```c++
 Stroke s(
@@ -113,7 +113,7 @@ Then you should have all that you need and you are free to use this data as you 
 
 ## Algorithm example
 
-You can read the paper to get a better idea of how works the algorithm. Here, I just take a simple example showing the main steps of the algorithm. Let's take a 3x4 grid and a (1, 3) → (4.5, 1) motion which needs to last 1000 milliseconds at full intensity (1). To avoid confusion between grid dimensions and stroke coordinates, see the picture below :
+You can read the paper to get a better idea of how works the algorithm. Here, I just take a simple example showing the main steps of the algorithm. Let's take a 3x4 grid and a (1, 3) → (4.5, 1) motion which needs to last 1000 milliseconds at full intensity (1). On the picture I use centimeters to describe the stroke, but in the code you would have use units. Sorry for the confusion.
 
 ![Grid and Stroke schema](img/grid_stroke.svg)
 
