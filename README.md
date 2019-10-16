@@ -3,10 +3,15 @@
 <!-- TOC depthFrom:2 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
 
 - [Introduction](#introduction)
+- [When should I use TactileBrush ?](#when-should-i-use-tactilebrush-)
 - [Compilation and installation](#compilation-and-installation)
 - [Usage](#usage)
+	- [Grid](#grid)
+	- [Stroke](#stroke)
+	- [Mixing grid and stroke](#mixing-grid-and-stroke)
 - [Algorithm example](#algorithm-example)
 - [Equations](#equations)
+- [Footnotes](#footnotes)
 
 <!-- /TOC -->
 
@@ -14,12 +19,14 @@
 
 *Disclaimer : as this is a very specific topic, and because I am a beginner in haptics, this may be totally useless for most people and/or partially wrong. Nevertheless, I did my best and contributions/issues are welcomed.*
 
-This repo proposes an implementation of the Tactile Brush algorithm proposed by Ali Israr and Ivan Poupyrev in 2011 ([paper](https://dl.acm.org/citation.cfm?id=1979235)). Afaik, there is no other free/libre implementation of this algorithm.
+This repo proposes an implementation of the Tactile Brush algorithm proposed by Ali Israr and Ivan Poupyrev<sup id="a1">[1](#f1)</sup>. Afaik, there is no other free/libre implementation of this algorithm.
 
 This algorithm gives a general method to create haptic illusions of a 2D motion from a 2D grid of *actuators* (which may be ERMs, LRAs, haptic excitors...). It is based on two known haptic illusions :
 
 * Phantom actuator, or funneling illusion : when you feel an actuator at one place while none is there. Instead, two close actuators are triggered at the same time with a variable intensity, and the brain interprets these signals as a single actuator located in between.
 * Apparent motion, when the consecutive activation of two actuators feels like a continuous motion. This illusion is subject to the right choice of duration, frequency, and [SOA](https://en.wikipedia.org/wiki/Stimulus_onset_asynchrony).
+
+## When should I use TactileBrush ?
 
 The algorithm has a few constraints :
 
@@ -35,6 +42,8 @@ So, if you have :
 4. The wish to make the user feel a continuous motion
 
 This algorithm may be useful to you.
+
+Please note that the algorithm works best with a small number of lines. See [Algorithm example](#algorithm-example) for a limitation when there is more than two lines.
 
 ## Compilation and installation
 
@@ -113,7 +122,9 @@ Then you should have all that you need and you are free to use this data as you 
 
 ## Algorithm example
 
-You can read the paper to get a better idea of how works the algorithm. Here, I just take a simple example showing the main steps of the algorithm. Let's take a 3x4 grid and a (1, 3) → (4.5, 1) motion which needs to last 1000 milliseconds at full intensity (1). On the picture I use centimeters to describe the stroke, but in the code you would have use units. Sorry for the confusion.
+You can read the paper to get a better idea of how works the algorithm. Here, I just take a simple example showing the main steps of the algorithm. Let's take a 3x4 grid and a (1, 3) → (4.5, 1) motion which needs to last 1000 milliseconds at full intensity (1).
+
+*On the picture I use centimeters to define the end and the start stroke, but in the code you would have used units. Sorry for the confusion.*
 
 ![Grid and Stroke schema](img/grid_stroke.svg)
 
@@ -143,23 +154,34 @@ The results are (with `TactileBrush::prettyPrint()`) :
 
 ```
 Time 0ms :
-        Physical actuator at column 0 and 2 triggered during 72.3918msec with intensity 0.57735
-        Physical actuator at column 1 and 2 triggered during 72.3918msec with intensity 0.816497
+        Physical actuator at column 0 and line 2 triggered during 72.3918msec with intensity 0.57735
+        Physical actuator at column 1 and line 2 triggered during 72.3918msec with intensity 0.816497
 Time 70.4654ms :
-        Physical actuator at column 1 and 1 triggered during 398.527msec with intensity 0.436436
-        Physical actuator at column 1 and 2 triggered during 398.527msec with intensity 0.899735
+        Physical actuator at column 1 and line 1 triggered during 398.527msec with intensity 0.436436
+        Physical actuator at column 1 and line 2 triggered during 398.527msec with intensity 0.899735
 Time 245.294ms :
-        Physical actuator at column 2 and 1 triggered during 593.592msec with intensity 0.872872
-        Physical actuator at column 2 and 2 triggered during 593.592msec with intensity 0.48795
+        Physical actuator at column 2 and line 1 triggered during 593.592msec with intensity 0.872872
+        Physical actuator at column 2 and line 2 triggered during 593.592msec with intensity 0.48795
 Time 482.543ms :
-        Physical actuator at column 2 and 1 triggered during 558.798msec with intensity 0.763763
-        Physical actuator at column 3 and 1 triggered during 558.798msec with intensity 0.645497
+        Physical actuator at column 2 and line 1 triggered during 558.798msec with intensity 0.763763
+        Physical actuator at column 3 and line 1 triggered during 558.798msec with intensity 0.645497
 Time 708.659ms :
-        Physical actuator at column 3 and 0 triggered during 291.341msec with intensity 0.57735
-        Physical actuator at column 3 and 1 triggered during 291.341msec with intensity 0.816497
+        Physical actuator at column 3 and line 0 triggered during 291.341msec with intensity 0.57735
+        Physical actuator at column 3 and line 1 triggered during 291.341msec with intensity 0.816497
 ```
 
 We see that each virtual actuator maps on two physical actuators (because in this case, no virtual actuator lies on a physical actuator), and that the start and duration time are the same, but the intensities are different.
+
+A possible result can be seen below. This is what we get when we use a pink noise with amplitude modulation to smooth the activation of tactors (not included in TactileBrush algorithm). You will recognize time of activation, duration and intensities.
+
+![Plot of virtual actuators activation](img/plog.png)
+
+Note that the above also exhibits one of the limitations of TactileBrush algorithm, as explained in another paper<sup id="a2">[2](#f2)</sup>. For example, the *pink* actuator is used to render **simultaneously** two virtual actuators (λ<sub>4</sub> and λ<sub>5</sub>), so we have a conflict when modulating amplitude. Quoting the paper :
+
+> [...] the phantom tactors PA and PB can be active at the same time while
+sharing a common physical tactor P2. The same problem exists for PB and PC. This
+contradicts the assumption that the phantom tactors can be independently controlled
+and requires additional handling of the intensity of the overlapping physical tactor [...]
 
 ## Equations
 
@@ -195,3 +217,10 @@ We came up with the following relations, `n` being the number of virtual actuato
 Combining this, we have all what we need to compute SOA and duration for every virtual actuator. First, compute SOA, and then use relation 1, 3 and 4 to compute duration. Use relation 2 for first and last actuator.
 
  <img src="https://latex.codecogs.com/svg.latex?SOA_i=\dfrac{0,32*(d_i^-&plus;\tau_{i&plus;1}-\sum_{k=0}^{i-1}SOA_k)&plus;47.3}{1.32}">
+
+## Footnotes
+
+ <b id="f1">1</b> Israr, Ali & Poupyrev, Ivan. (2011). Tactile Brush: Drawing on skin with a tactile grid display. Conference on Human Factors in Computing Systems - Proceedings. 2019-2028. 10.1145/1978942.1979235. [↩](#a1)
+
+
+ <b id="f2">2</b> Park, Jaeyoung & Kim, Jaeha & Oh, Yonghwan & Tan, Hong. (2016). Rendering Moving Tactile Stroke on the Palm Using a Sparse 2D Array. 9774. 47-56. 10.1007/978-3-319-42321-0_5. [↩](#a2)
