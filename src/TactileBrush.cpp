@@ -6,7 +6,6 @@ const std::map<float, std::vector<ActuatorStep>>& TactileBrush::computeStrokeSte
     throw std::out_of_range("Stroke start or end point out of the grid range");
   }
   const auto& virtualPoints = s.computeParameters(lines, columns, interDist);
-  s.prettyPrint();
   actuatorTriggers.clear();
   computePhysicalMapping(virtualPoints, s.getIntensity());
   return actuatorTriggers;
